@@ -82,6 +82,7 @@ typedef struct prod
 {
 	char* name;
 	float price;
+	int quan;
 	sellers* seller;
 	struct prod* next;
 }prod;
@@ -110,10 +111,12 @@ int main(int argc, char* argv[])
 
 
 	sellers* shead = (sellers*) malloc(sizeof(sellers));
+	memset(shead, 0, sizeof(sellers));
 	sellers* srv = shead;
 	srv->next = NULL;
 
 	prod* phead = (prod*) malloc(sizeof(prod));
+	memset(phead, 0, sizeof(prod));
 	prod* prv = phead;
 	prv->next = NULL;
 
@@ -132,10 +135,10 @@ int main(int argc, char* argv[])
 			srv->scost = atof(&line[start+end]);
 			end = bsstrlen(&line[len]);
 			srv->mffs = atof(&line[len-end]);
-			p("SetShippingCost %s %f %f", srv->name, srv->scost, srv->mffs);
+			p("SetShippingCost %s %.1f %.1f", srv->name, srv->scost, srv->mffs);
 			srv->next = (sellers*) malloc(sizeof(sellers));
+			memset(srv->next, 0, sizeof(sellers));
 			srv = srv->next;
-			srv->next = NULL;
 		}
 
 		if(strstr(line, "SetProductPrice") != NULL)
@@ -147,7 +150,6 @@ int main(int argc, char* argv[])
 
 			int _end = sstrlen(&line[start+end+1]);
 			sellers* _srv = shead;
-			prv->seller = NULL;
 			while(_srv->name)
 			{
 				if(strncmp(_srv->name, &line[start+end+1], _end) == 0)
@@ -161,22 +163,99 @@ int main(int argc, char* argv[])
 			end = bsstrlen(&line[len]);
 			prv->price = atof(&line[len-end]);
 
-			p("SetProductPrice %s %s %f", prv->name, prv->seller->name, prv->price);
+			p("SetProductPrice %s %s %.1f", prv->name, prv->seller->name, prv->price);
 			prv->next = (prod*) malloc(sizeof(prod));
+			memset(prv->next, 0, sizeof(prod));
 			prv = prv->next;
-			prv->next = NULL;
 		}
 		if(strstr(line, "IncreaseInventory") != NULL)
 		{
+			int start = sstrlen(line)+1;
+			int end = sstrlen(&line[start]);
+			prod* _prv = phead;
+			while(_prv->name)
+			{
+				if(strncmp(_prv->name, &line[start], end) == 0)
+				{
+					int _end = sstrlen(&line[start+end+1]);
+					if(strncmp(_prv->seller->name, &line[start+end+1], _end) == 0)
+					{
+						_end = bsstrlen(&line[len]);
+						int num = atoi(&line[len-_end]);
+						_prv->quan += num;
+						p("IncreaseInventory %s %s %d %d", _prv->name, _prv->seller->name, num, _prv->quan);
+					}
+				}
+				_prv = _prv->next;
+			}
 
 		}
 		if(strstr(line, "CustomerPurchase") != NULL)
 		{
-
+			int start = sstrlen(line)+1;
+			int end = sstrlen(&line[start]);
+			prod* _prv = phead;
+			while(_prv->name)
+			{
+				if(strncmp(_prv->name, &line[start], end) == 0)
+				{
+					int _end = sstrlen(&line[start+end+1]);
+					if(strncmp(_prv->seller->name, &line[start+end+1], _end) == 0)
+					{
+						_end = bsstrlen(&line[len]);
+						int num = atoi(&line[len-_end]);
+						if(_prv->quan - num < 0)
+						{
+							p("CustomerPurchase %s %s %d check your supply, retard", _prv->name, _prv->seller->name, num);
+						}
+						else
+						{
+							_prv->quan -= num;
+							p("CustomerPurchase %s %s %d %d", _prv->name, _prv->seller->name, num, _prv->quan);
+						}
+					}
+				}
+				_prv = _prv->next;
+			}
 		}
 		if(strstr(line, "DisplaySellerList") != NULL)
 		{
-
+			int start = sstrlen(line)+1;
+			int end = strlen(&line[start]);
+			prod* _prv = phead;
+			char* prev = NULL;
+			while(_prv->name)
+			{
+				if(strncmp(_prv->name, &line[start], end) == 0)
+				{
+					float totalc;
+					if(prev)
+					{
+						if(strcmp(_prv->name, prev) == 0)
+						{
+							goto skip_head;
+						}
+					}
+					p("DisplaySellerList %s", _prv->name);
+					p("    seller  productPrice  shippingCost  totalCost");
+skip_head:;
+					printf("   %s", _prv->seller->name);
+					printf("        %.2f", _prv->price);
+					if(_prv->price >= _prv->seller->mffs)
+					{
+						printf("          0.00");
+						totalc = _prv->price;
+					}
+					else
+					{
+						printf("          %.2f", _prv->seller->scost);
+						totalc = _prv->price + _prv->seller->scost;
+					}
+					printf("     %.2f\n", totalc);
+					prev = _prv->name;
+				}
+				_prv = _prv->next;
+			}
 		}
 		line = strtok(0, "\n");
 	}
