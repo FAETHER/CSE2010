@@ -1,5 +1,7 @@
 SetShippingCost seller1 2 20
+SetShippingCost penisss21 2.324 20
 SetProductPrice appleIphone seller1 599
+SetProductPrice idiotka penisss21 0.34
 IncreaseInventory appleIphone seller1 3
 CustomerPurchase appleIphone seller1 1
 CustomerPurchase appleIphone seller1 1
