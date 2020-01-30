@@ -39,6 +39,40 @@ HW1
 #   define ASSERT(condition, message)
 #endif
 
+typedef struct sellers
+{
+	char* name;
+	float scost;
+	float mffs;
+	struct sellers* next;
+}sellers;
+
+typedef struct prod
+{
+	char* name;
+	float price;
+	float totalc;
+	int quan;
+	sellers* seller;
+	struct prod* next;
+}prod;
+
+float _fabs(float x)
+{
+	if (x < 0)
+		x = -x;
+	return(x);
+}
+
+char ctolower(char str)
+{
+        if(str >=65 && str<=90)
+        {
+            str = str + 32;
+        }
+	return str;
+}
+
 int p(const char *format, ...)
 {
     va_list args;
@@ -69,24 +103,66 @@ size_t bsstrlen (const char* s)
 	for(i=s; *i != ' '; --i);
 	return (s-i);
 }
+/* function to swap data of two nodes a and b*/
+void swap(prod *a, prod *b) 
+{ 
+    float ttmp = a->totalc; 
+    float ptmp = a->price;
+    int qtmp = a->quan;
+    sellers* stmp = a->seller;
+    char* ntmp = a->name;
 
-typedef struct sellers
-{
-	char* name;
-	float scost;
-	float mffs;
-	struct sellers* next;
-}sellers;
+    a->totalc = b->totalc;
+    a->price = b->price;
+    a->quan = b->quan;
+    a->seller = b->seller;
+    a->name = b->name; 
 
-typedef struct prod
-{
-	char* name;
-	float price;
-	int quan;
-	sellers* seller;
-	struct prod* next;
-}prod;
+    b->totalc = ttmp;
+    b->price = ptmp;
+    b->quan = qtmp;
+    b->seller = stmp;
+    b->name = ntmp; 
+}
 
+/* Bubble sort the given linked list */
+void bubbleSort(prod *start) 
+{ 
+    int swapped, i; 
+    prod *ptr1; 
+    prod *lptr = NULL; 
+  
+    /* Checking for empty list */
+    if (start == NULL) 
+        return; 
+  
+    do
+    { 
+        swapped = 0; 
+        ptr1 = start; 
+  
+        while (ptr1->next != lptr) 
+        { 
+            if (ptr1->totalc > ptr1->next->totalc) 
+            {  
+                swap(ptr1, ptr1->next); 
+                swapped = 1; 
+            }
+	    else if (_fabs(ptr1->totalc - ptr1->next->totalc) < 0.001)
+	    {
+		    //alphabetical
+		    if(ctolower(ptr1->seller->name[0]) < ctolower(ptr1->next->seller->name[0]))
+		    {
+			    swap(ptr1, ptr1->next); 
+			    swapped = 1; 
+		    }
+	    } 
+            ptr1 = ptr1->next; 
+        } 
+        lptr = ptr1; 
+    } 
+    while (swapped); 
+} 
 
 int main(int argc, char* argv[])
 {
@@ -164,6 +240,15 @@ int main(int argc, char* argv[])
 			prv->price = atof(&line[len-end]);
 
 			p("SetProductPrice %s %s %.1f", prv->name, prv->seller->name, prv->price);
+			if(prv->price >= prv->seller->mffs)
+			{
+				prv->totalc = prv->price;
+			}
+			else
+			{
+				prv->totalc = prv->price + prv->seller->scost;
+			}
+			bubbleSort(phead);
 			prv->next = (prod*) malloc(sizeof(prod));
 			memset(prv->next, 0, sizeof(prod));
 			prv = prv->next;
@@ -206,7 +291,7 @@ int main(int argc, char* argv[])
 						int num = atoi(&line[len-_end]);
 						if(_prv->quan - num < 0)
 						{
-							p("CustomerPurchase %s %s %d check your supply, retard", _prv->name, _prv->seller->name, num);
+							p("CustomerPurchase %s %s %d check your supply, bruh", _prv->name, _prv->seller->name, num);
 						}
 						else
 						{
@@ -239,20 +324,21 @@ int main(int argc, char* argv[])
 					p("DisplaySellerList %s", _prv->name);
 					p("    seller  productPrice  shippingCost  totalCost");
 skip_head:;
-					printf("   %s", _prv->seller->name);
-					printf("        %.2f", _prv->price);
-					if(_prv->price >= _prv->seller->mffs)
-					{
-						printf("          0.00");
-						totalc = _prv->price;
+	  				if(_prv->quan > 0)
+					{	
+						printf("   %s", _prv->seller->name);
+						printf("        %.2f", _prv->price);
+						if(_prv->price >= _prv->seller->mffs)
+						{
+							printf("          0.00");
+						}
+						else
+						{
+							printf("          %.2f", _prv->seller->scost);
+						}
+						printf("     %.2f\n", _prv->totalc);
+						prev = _prv->name;
 					}
-					else
-					{
-						printf("          %.2f", _prv->seller->scost);
-						totalc = _prv->price + _prv->seller->scost;
-					}
-					printf("     %.2f\n", totalc);
-					prev = _prv->name;
 				}
 				_prv = _prv->next;
 			}
