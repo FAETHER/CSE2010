@@ -17,6 +17,7 @@ HW1
 #include <string.h>
 #include <stdbool.h>
 #include <stdarg.h>
+#include <float.h>
 /*
   At the top of each function, describe the function, parameter(s), and return value (if any)
  */
@@ -219,12 +220,40 @@ int main(int argc, char* argv[])
 
 		if(strstr(line, "SetProductPrice") != NULL)
 		{
-			prv->name = (char*) malloc(len);
+			char* tmp = (char*) malloc(len);
 			int start = sstrlen(line)+1;
 			int end = sstrlen(&line[start]);
-			memcpy(prv->name, &line[start], end);
-
+			memcpy(tmp, &line[start], end);
 			int _end = sstrlen(&line[start+end+1]);
+
+			prod* _prv = phead;
+			while(_prv && _prv->name)
+			{
+				if(strstr(_prv->name, tmp) != NULL)
+				{
+					if(_prv->seller)
+					{
+						if(strncmp(_prv->seller->name, &line[start+end+1], _end) == 0)
+						{
+							int i = bsstrlen(&line[len]);
+							_prv->price = atof(&line[len-i]);
+							if(_prv->price >= _prv->seller->mffs)
+							{
+								_prv->totalc = _prv->price;
+							}
+							else
+							{
+								_prv->totalc = _prv->price + _prv->seller->scost;
+							}
+							goto _continue;
+						}
+					}
+				}
+				_prv = _prv->next;
+			}
+
+			prv->name = (char*) malloc(len);
+			memcpy(prv->name, &line[start], end);
 			sellers* _srv = shead;
 			while(_srv->name)
 			{
@@ -255,9 +284,11 @@ int main(int argc, char* argv[])
 		}
 		if(strstr(line, "IncreaseInventory") != NULL)
 		{
+again:;
 			int start = sstrlen(line)+1;
 			int end = sstrlen(&line[start]);
 			prod* _prv = phead;
+			char found = 0;
 			while(_prv->name)
 			{
 				if(strncmp(_prv->name, &line[start], end) == 0)
@@ -269,11 +300,35 @@ int main(int argc, char* argv[])
 						int num = atoi(&line[len-_end]);
 						_prv->quan += num;
 						p("IncreaseInventory %s %s %d %d", _prv->name, _prv->seller->name, num, _prv->quan);
+						found = 1;
 					}
 				}
 				_prv = _prv->next;
 			}
+			if(!found)
+			{
+				prv->name = (char*) malloc(len);
+				memcpy(prv->name, &line[start], end);
+				int _end = sstrlen(&line[start+end+1]);
+				sellers* _srv = shead;
+				while(_srv->name)
+				{
+					if(strncmp(_srv->name, &line[start+end+1], _end) == 0)
+					{
+						prv->seller = _srv;
+						break;
+					}
+					_srv = _srv->next;
+				}
+				ASSERT(prv->seller, "failed to find seller for item...");
+				prv->price = FLT_MAX; 
+				prv->totalc = prv->price;
 
+				prv->next = (prod*) malloc(sizeof(prod));
+				memset(prv->next, 0, sizeof(prod));
+				prv = prv->next;
+				goto again;
+			}
 		}
 		if(strstr(line, "CustomerPurchase") != NULL)
 		{
@@ -343,6 +398,7 @@ skip_head:;
 				_prv = _prv->next;
 			}
 		}
+_continue:;
 		line = strtok(0, "\n");
 	}
 

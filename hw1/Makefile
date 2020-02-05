@@ -1,4 +1,4 @@
 
 
 all: 
-	gcc main.c -o main && ./main hw1in1.txt	
+	gcc main.c -g -o main && ./main hw1in1.txt	
