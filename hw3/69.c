@@ -142,7 +142,8 @@ int main(int argc, char* argv[])
    */
 	p("Usage ./a.out queryfile.txt datafile.txt");
 	p("The root of the tree is assumed to be the first unique symbol in the file, if there are more, more trees will be created.");
-
+	p("-----------------------------");
+	p("");
 	FILE* file = fopen(argv[2], "rb+");
 	if(!file)
 	{
@@ -192,7 +193,7 @@ int main(int argc, char* argv[])
 				//p("line %s", line);
 				if(strncmp(line, rover->data, _len-1) == 0)
 				{
-					p("pass %s", line);
+					p("Linking %s", line);
 
 					node* node = rover;
 					//all the way back
@@ -221,14 +222,13 @@ int main(int argc, char* argv[])
 				}
 				rover = rover->child;
 			}	
-			p("Symbol '%s' is not in a tree, creating a new tree.", line);
-			//break;
 		}
 
 		//shitty tree root
 		node* node = (struct node*)malloc(sizeof(struct node)); 
 		vtree[vidx] = node;
 		memcpy(node->data, line, _len);
+		p("Info: Using %s as root", node->data);
 		node->child = NULL;
 		node->parent = NULL;
 
@@ -253,6 +253,57 @@ int main(int argc, char* argv[])
 		line = strtok(0, "\n");
 	}
 
+	line = strtok(strdup(buffer2), "\n");
+	_len = 0;
+	totl = 0;
+	while(line)
+	{
+		int len = fstrlen(line);
+		_len = sstrlen(line);
+
+		if(strstr(line, "GetEventsBySport"))
+		{
+			goto _continue_;
+		}
+		if(strstr(line, "GetWinnersAndCountriesBySportAndEvent"))
+		{
+
+			goto _continue_;
+		}
+		if(strstr(line, "GetGoldMedalistAndCountryBySportAndEvent"))
+		{
+
+			goto _continue_;
+		}
+		if(strstr(line, "GetAthleteWithMostGoldMedals"))
+		{
+
+			goto _continue_;
+		}
+		if(strstr(line, "GetAthleteWithMostMedals"))
+		{
+
+			goto _continue_;
+		}
+		if(strstr(line, "GetCountryWithMostMedals"))
+		{
+
+			goto _continue_;
+		}
+		if(strstr(line, "GetCountryWithMostGoldMedals"))
+		{
+
+			goto _continue_;
+		}
+		if(strstr(line, "GetSportAndEventByAthlete"))
+		{
+
+			goto _continue_;
+		}
+
+		_continue_:;
+		line = strtok(0, "\n");
+	}
 return 1;
 
 
