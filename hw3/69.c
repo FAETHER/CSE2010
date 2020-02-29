@@ -210,7 +210,7 @@ int main(int argc, char* argv[])
 
 						if((totl - _len) != 0)
 						{
-							//create bunch of shit children
+							//create bunch of milksuckers
 							node->child = (struct node*)malloc(sizeof(struct node)); 
 							node = node->child;
 							node->parent = rover;
@@ -253,16 +253,47 @@ int main(int argc, char* argv[])
 		line = strtok(0, "\n");
 	}
 
+	p("OUTPUT -----------------------------------------");
+
 	line = strtok(strdup(buffer2), "\n");
 	_len = 0;
 	totl = 0;
 	while(line)
 	{
 		int len = fstrlen(line);
-		_len = sstrlen(line);
 
 		if(strstr(line, "GetEventsBySport"))
 		{
+			_len = sstrlen(line);
+
+			for(int i = 0; i < vidx; i++)
+			{
+				node *rover = vtree[i]->child;
+				while(rover)
+				{
+					//p("cmp %s, %s",rover->data, &line[_len]);
+					//p("line %s", line);
+					if(strstr(rover->data, &line[_len]))
+					{
+						//p("line %s", line);
+						node *master = rover;
+						rover = vtree[i]->child;
+						printf("GetEventsBySport ");
+						while(rover)
+						{
+							if(rover->parent == master)
+							{
+								printf("%s", rover->data);
+							}
+							rover = rover->child;
+						}
+						printf("\n");
+						break;
+					}
+					rover = rover->child;
+				}	
+			}
+
 			goto _continue_;
 		}
 		if(strstr(line, "GetWinnersAndCountriesBySportAndEvent"))
