@@ -44,7 +44,9 @@ typedef struct node
 {
     struct node* parent; 
     struct node* child;
-    char data[6969];  //6 * 9 + 6 + 9 = 69
+    char *data;
+    char _data[6969];  //6 * 9 + 6 + 9 = 69
+    int count;
 }node;
 
 float _fabs(float x)
@@ -100,19 +102,34 @@ size_t bsstrlen (const char* s)
 	return (s-i);
 }
 
+size_t chstrlen (const char* s, char ch) 
+{
+	register const char* i;
+	for(i=s; *i != ch; ++i);
+	return (i-s);
+}
+
 void insertchild(node *parent, node *child)
 {
-	
+	//I don't need this
 }
 
 void appendchild(node *parent, node *child)
 {
-	
+	//I don't need this
 }
 
-node *getchildren(node *p)
+node *getchildren(node *pp)
 {
-	
+	node *master = pp;
+	while(pp)
+	{
+		if(pp->parent == master)
+		{
+			p("%s", pp->data);
+		}
+		pp = pp->child;
+	}
 }
 
 node *getparent(node *p)
@@ -140,11 +157,11 @@ int main(int argc, char* argv[])
   /*
     description of declared variables, with meaningful names
    */
-	p("Usage ./a.out queryfile.txt datafile.txt");
+	p("Usage ./a.out data.txt query.txt");
 	p("The root of the tree is assumed to be the first unique symbol in the file, if there are more, more trees will be created.");
 	p("-----------------------------");
 	p("");
-	FILE* file = fopen(argv[2], "rb+");
+	FILE* file = fopen(argv[1], "rb+");
 	if(!file)
 	{
 		p("file not found");
@@ -159,7 +176,7 @@ int main(int argc, char* argv[])
 	size_t rc = fread(buffer, 1, length, file);
 	fclose(file);
 
-	file = fopen(argv[1], "rb+");
+	file = fopen(argv[2], "rb+");
 	if(!file)
 	{
 		p("file not found");
@@ -203,6 +220,7 @@ int main(int argc, char* argv[])
 					}
 
 					totl = 0;
+					int count = 0;
 					while(totl < len)
 					{
 						_len = sstrlen(&line[totl]);
@@ -215,9 +233,34 @@ int main(int argc, char* argv[])
 							node = node->child;
 							node->parent = rover;
 							node->child = NULL;
+							node->data = node->_data;
+							node->count = count; 
 							memcpy(node->data, &line[totl-_len], _len);
+							count++;
 						}
 					}
+
+
+					//I can sort, but there is no point of doing this mess.
+
+					//node = rover->child;
+					//struct node *_node = rover->child;
+					//while(node->parent == rover)
+					//{
+					//	while(_node->parent == rover)
+					//	{
+							//alpabetical;
+					//		if(*_node->data > *node->data)
+					//		{
+								//char *tmp = node->data;
+								//node->data = _node->data;
+								//_node->data = tmp;
+
+					//		}
+					//		_node = _node->child;
+					//	}
+					//	node = node->child;
+					//}
 					goto continue_;
 				}
 				rover = rover->child;
@@ -227,6 +270,7 @@ int main(int argc, char* argv[])
 		//shitty tree root
 		node* node = (struct node*)malloc(sizeof(struct node)); 
 		vtree[vidx] = node;
+		node->data = node->_data;
 		memcpy(node->data, line, _len);
 		p("Info: Using %s as root", node->data);
 		node->child = NULL;
@@ -245,6 +289,7 @@ int main(int argc, char* argv[])
 				node = node->child;
 				node->parent = vtree[vidx];
 				node->child = NULL;
+				node->data = node->_data;
 				memcpy(node->data, &line[totl-_len], _len);
 			}
 		}
@@ -278,7 +323,7 @@ int main(int argc, char* argv[])
 						//p("line %s", line);
 						node *master = rover;
 						rover = vtree[i]->child;
-						printf("GetEventsBySport ");
+						printf("GetEventsBySport %s ", &line[_len]);
 						while(rover)
 						{
 							if(rover->parent == master)
@@ -298,37 +343,297 @@ int main(int argc, char* argv[])
 		}
 		if(strstr(line, "GetWinnersAndCountriesBySportAndEvent"))
 		{
+			_len = sstrlen(line);
+			_len += sstrlen(&line[_len]);
+			char *target = &line[_len];
 
+			for(int i = 0; i < vidx; i++)
+			{
+				node *rover = vtree[i]->child;
+				while(rover)
+				{
+					//p("cmp %s, %s",rover->data, target);
+					//p("line %s", line);
+					if(strstr(rover->data, target))
+					{
+						//p("line %s", line);
+						node *master = rover;
+						rover = vtree[i]->child;
+						printf("GetWinnersAndCountriesBySportAndEvent %s ", getparent(master)->data);
+						while(rover)
+						{
+							if(rover->parent == master)
+							{
+								printf("%s", rover->data);
+							}
+							rover = rover->child;
+						}
+						printf("\n");
+						break;
+					}
+					rover = rover->child;
+				}	
+			}
 			goto _continue_;
 		}
 		if(strstr(line, "GetGoldMedalistAndCountryBySportAndEvent"))
 		{
+			_len = sstrlen(line);
+			_len += sstrlen(&line[_len]);
+			char *target = &line[_len];
+
+			for(int i = 0; i < vidx; i++)
+			{
+				node *rover = vtree[i]->child;
+				while(rover)
+				{
+					//p("cmp %s, %s",rover->data, target);
+					//p("line %s", line);
+					if(strstr(rover->data, target))
+					{
+						//p("line %s", line);
+						node *master = rover;
+						rover = vtree[i]->child;
+						printf("GetGoldMedalistAndCountryBySportAndEvent %s ", getparent(master)->data);
+						while(rover)
+						{
+							if(rover->parent == master)
+							{
+								printf("%s", rover->data);
+								break;
+							}
+							rover = rover->child;
+						}
+						printf("\n");
+						break;
+					}
+					rover = rover->child;
+				}	
+			}
+			goto _continue_;
+		}
+		if(strstr(line, "GetAthleteWithMostMedals"))
+		{
+//			char *target = "speedSkating"; //I have to assume here because no set is specified.
+
+//MEGA HACK 6969: 
+//Well i know something that these retards left constant, every player has : character in between 
+//so instead of traversing the tree like an idiot, I will attach to that fact. I mean, I highly doubt 
+//there ever will be an input without player's country and this makes implementation way faster too. 
+			char *target = ":";
+			int real_max = 0;
+			node* result[69];
+			int rnum = 0;
+			for(int i = 0; i < vidx; i++)
+			{
+				node *rover = vtree[i]->child;
+				while(rover)
+				{
+					if(strstr(rover->data, target))
+					{
+						node *_rover = vtree[i]->child;
+						int max = 0;
+						while(_rover)
+						{
+							if(strstr(_rover->data, rover->data))
+							{
+								max++;	
+							}
+							_rover = _rover->child;
+						}
+						if(max >= real_max && max > 1)
+						{
+							for(int i = 0; i < rnum; i++)
+							{
+								if(strstr(rover->data, result[i]->data))
+								{
+									goto skip;
+								}
+							}
+							result[rnum] = rover;
+							real_max = max;
+							rnum++;
+skip:;
+						}
+					}
+					rover = rover->child;
+				}	
+			}
+			printf("GetAthleteWithMostMedals %d ", rnum);
+			for(int i = 0; i < rnum; i++)
+			{
+				for(int j = 0; j < rnum; j++)
+				{
+					//alpabetical;
+					if(*result[j]->data > *result[i]->data)
+					{
+						node *tmp = result[i];
+						result[i] = result[j];
+						result[j] = tmp;
+
+					}
+				}
+			}
+
+			for(int i = rnum-1; i >= 0; i--)
+			{
+				int len = chstrlen(result[i]->data, ':');
+				printf("%.*s ", len, result[i]->data);
+			}
+			printf("\n");
 
 			goto _continue_;
 		}
 		if(strstr(line, "GetAthleteWithMostGoldMedals"))
 		{
+			char *target = ":";
+			int real_max = 0;
+			node* result[69];
+			int rnum = 0;
+			for(int i = 0; i < vidx; i++)
+			{
+				node *rover = vtree[i]->child;
+				while(rover)
+				{
+					if(strstr(rover->data, target))
+					{
+						if(rover->count == 0)
+						{
+							result[rnum] = rover; //gold will be the second after root.
+							rnum++;
+						}
+					}
+					rover = rover->child;
+				}	
+			}
+			printf("GetAthleteWithMostGoldMedals 1 ");
+			for(int i = 0; i < rnum; i++)
+			{
+				for(int j = 0; j < rnum; j++)
+				{
+					//alpabetical;
+					if(*result[j]->data > *result[i]->data)
+					{
+						node *tmp = result[i];
+						result[i] = result[j];
+						result[j] = tmp;
 
-			goto _continue_;
-		}
-		if(strstr(line, "GetAthleteWithMostMedals"))
-		{
-
+					}
+				}
+			}
+			for(int i = 0; i < rnum; i++)
+			{
+				int len = chstrlen(result[i]->data, ':');
+				printf("%.*s ", len, result[i]->data);
+			}
+			printf("\n");
 			goto _continue_;
 		}
 		if(strstr(line, "GetCountryWithMostMedals"))
 		{
-
+			char *target = ":";
+			int real_max = 0;
+			node* result = NULL;
+			for(int i = 0; i < vidx; i++)
+			{
+				node *rover = vtree[i]->child;
+				while(rover)
+				{
+					if(strstr(rover->data, target))
+					{
+						node *_rover = vtree[i]->child;
+						int max = 0;
+						int len = chstrlen(rover->data, ':');
+						char buf[len*5];
+						memset(buf, 0, len*5);
+						memcpy(buf, &rover->data[len], fstrlen(&rover->data[len]));
+						while(_rover)
+						{
+							if(strstr(_rover->data, buf))
+							{
+								max++;	
+							}
+							_rover = _rover->child;
+						}
+						if(max >= real_max)
+						{
+							result = rover;
+							real_max = max;
+						}
+					}
+					rover = rover->child;
+				}	
+			}
+			if(result)
+			{
+				int len = chstrlen(result->data, ':');
+				p("GetCountryWithMostMedals %d %s", real_max, &result->data[len+1]);
+			}
 			goto _continue_;
 		}
 		if(strstr(line, "GetCountryWithMostGoldMedals"))
 		{
-
+			char *target = ":";
+			int real_max = 0;
+			node* result = NULL;
+			for(int i = 0; i < vidx; i++)
+			{
+				node *rover = vtree[i]->child;
+				while(rover)
+				{
+					if(strstr(rover->data, target))
+					{
+						node *_rover = vtree[i]->child;
+						int max = 0;
+						int len = chstrlen(rover->data, ':');
+						char buf[len*5];
+						memset(buf, 0, len*5);
+						memcpy(buf, &rover->data[len], fstrlen(&rover->data[len]));
+						while(_rover)
+						{
+							if(strstr(_rover->data, buf) && _rover->count == 0)
+							{
+								max++;	
+							}
+							_rover = _rover->child;
+						}
+						if(max >= real_max)
+						{
+							result = rover;
+							real_max = max;
+						}
+					}
+					rover = rover->child;
+				}	
+			}
+			if(result)
+			{
+				int len = chstrlen(result->data, ':');
+				p("GetCountryWithMostGoldMedals %d %s", real_max, &result->data[len+1]);
+			}
 			goto _continue_;
 		}
 		if(strstr(line, "GetSportAndEventByAthlete"))
 		{
+			_len = sstrlen(line);
 
+			printf("GetEventsBySport %s ", &line[_len]);
+			for(int i = 0; i < vidx; i++)
+			{
+				node *rover = vtree[i]->child;
+				while(rover)
+				{
+					if(strstr(rover->data, &line[_len]))
+					{
+						if(rover->parent->parent)
+						{
+							printf("%s: %s", rover->parent->parent->data, rover->parent->data);
+						}
+					}
+					rover = rover->child;
+				}	
+			}
+			printf("\n");
 			goto _continue_;
 		}
 

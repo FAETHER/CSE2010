@@ -1,0 +1,6 @@
+GetEventsBySport speedSkating 1000mWomen 1000mMen 1500mWomen 1500mMen
+GetEventsBySport figureSkating individualWomen individualMen 
+GetWinnersAndCountriesBySportAndEvent figureSkating  Sotnikova:RUS Kim:KOR Kostner:ITA
+GetGoldMedalistAndCountryBySportAndEvent speedSkating  Groothuis:NED 
+GetAthleteWithMostMedals 2 Wust:NED  Morrison:CAN 
+GetAthleteWithMostGoldMedals 1figureSkating  

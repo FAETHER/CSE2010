@@ -1,4 +1,4 @@
-winterOlympics2014 speedSkating figureSkating
+winterOlympics2014 speedSkating figureSkating fgdf as sg
 speedSkating 1000mWomen 1000mMen 1500mWomen 1500mMen
 figureSkating individualWomen individualMen 
 1000mWomen Zhang:CHN Wust:NED Boer:NED
