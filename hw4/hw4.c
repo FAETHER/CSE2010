@@ -333,12 +333,20 @@ int main(int argc, char* argv[])
 			}
 			if(Time > BuyOrders[i].Time)
 			{
-				p("%s %s %d %lf %d", &line[i], BuyOrders[i].Buyer,
-						BuyOrders[i].Time, BuyOrders[i].Price, BuyOrders[i].Quantity);
+				if(BuyOrders[i].Time > 100000)
+				{
+					p("%s %s %d %lf %d", line, BuyOrders[i].Buyer,
+							BuyOrders[i].Time, BuyOrders[i].Price, BuyOrders[i].Quantity);
+				}
+				else
+				{
+					p("%s %s 0%d %lf %d", line, BuyOrders[i].Buyer,
+							BuyOrders[i].Time, BuyOrders[i].Price, BuyOrders[i].Quantity);
+				}
 			}
 			else
 			{
-				p("%s", &line[i]);
+				p("%s", line);
 			}
 			continue;
 		}
@@ -373,12 +381,20 @@ int main(int argc, char* argv[])
 			}
 			if(Time > SellOrders[i].Time)
 			{
-				p("%s %s %d %lf %d", &line[i], SellOrders[i].Seller,
-						SellOrders[i].Time, SellOrders[i].Price, SellOrders[i].Quantity);
+				if(SellOrders[i].Time > 100000)
+				{
+					p("%s %s %d %lf %d", line, SellOrders[i].Seller,
+							SellOrders[i].Time, SellOrders[i].Price, SellOrders[i].Quantity);
+				}
+				else
+				{
+					p("%s %s 0%d %lf %d", line, SellOrders[i].Seller,
+							SellOrders[i].Time, SellOrders[i].Price, SellOrders[i].Quantity);
+				}
 			}
 			else
 			{
-				p("%s", &line[i]);
+				p("%s", line);
 			}
 			continue;
 		}
