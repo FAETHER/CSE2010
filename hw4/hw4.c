@@ -151,12 +151,20 @@ typedef struct sell_t
 	u32 Quantity;
 }sell_t;
 
+typedef struct buyerhitstack_t
+{
+	char Name[1024];
+}buyerhitstack_t;
+
+buyerhitstack_t BHitstack[1024]; //optional for if reversed file position, aka seller came before buyer.
+buyerhitstack_t SHitstack[1024]; // terrible slow implementation, but an extra safecheck for me will never hurt
+//always remember: you are retarded.
 buy_t BuyOrders[1024];
 sell_t SellOrders[1024];
-u32 BuyIndexBuffer[1024];
-u32 SellIndexBuffer[1024];
 u64 Bcount;
 u64 Scount;
+u64 Bhitstackcount;
+u64 Shitstackcount;
 
 int main(int argc, char* argv[])
 {
@@ -398,6 +406,47 @@ int main(int argc, char* argv[])
 			}
 			continue;
 		}
+		if(strstr(line, "EnterBuyOrder"))
+		{
+			totl = 0;
+			u32 count = 0;
+			while(totl < len)
+			{
+				_len = sstrlen(&line[totl]);
+				totl += _len;
+
+				if((totl - _len) != 0)
+				{
+					if(count == 1)
+					{
+						memcpy(&BHitstack[Bhitstackcount].Name, &line[totl - _len], _len);
+						Bhitstackcount++;
+					}
+					count++;
+				}
+			}
+		}
+
+		if(strstr(line, "EnterSellOrder"))
+		{
+			totl = 0;
+			u32 count = 0;
+			while(totl < len)
+			{
+				_len = sstrlen(&line[totl]);
+				totl += _len;
+
+				if((totl - _len) != 0)
+				{
+					if(count == 1)
+					{
+						memcpy(&SHitstack[Shitstackcount].Name, &line[totl - _len], _len);
+						Shitstackcount++;
+					}
+					count++;
+				}
+			}
+		}
 
 		p("%s", line);
 		for(u32 i = 0; i < Bcount; i++)
@@ -419,31 +468,55 @@ special_case:
 					{
 						if(strstr(line, SellOrders[j].Seller))
 						{
-							p("ExecuteBuySellOrders %lf %d", Price, SellOrders[j].Quantity);
-							s32 Qdiff = BuyOrders[i].Quantity - SellOrders[j].Quantity;
-							//	p("%d", BuyOrders[i].Quantity);
-							//	p("%d", SellOrders[j].Quantity);
-							if(Qdiff < 0)
+							u32 z;
+							for(z = 0; z < Bhitstackcount; z++)
 							{
-								Qdiff = SellOrders[j].Quantity - BuyOrders[i].Quantity;
-								SellOrders[j].Quantity = Qdiff;
-								BuyOrders[i].Quantity = 0;
-								ASSERT(Qdiff > 0, "Huh?");
+								if(strstr(BHitstack[z].Name, BuyOrders[i].Buyer))
+								{
+									goto order_pass;
+								}
 							}
-							else
-							{
-								BuyOrders[i].QBought = SellOrders[j].Quantity;
-								BuyOrders[i].Quantity = Qdiff;
-								SellOrders[j].Quantity = 0;
-							}
-
-							p("Buyer: %s, %d", BuyOrders[i].Buyer, BuyOrders[i].Quantity);
-							p("Seller: %s, %d", SellOrders[j].Seller, SellOrders[j].Quantity);
+							goto next_line;
 						}
+						if(strstr(line, BuyOrders[i].Buyer))
+						{
+							u32 z;
+							for(z = 0; z < Shitstackcount; z++)
+							{
+								if(strstr(SHitstack[z].Name, SellOrders[j].Seller))
+								{
+									goto order_pass;
+								}
+							}
+							goto next_line;
+						}
+						continue;
+order_pass:
+						p("ExecuteBuySellOrders %lf %d", Price, SellOrders[j].Quantity);
+						s32 Qdiff = BuyOrders[i].Quantity - SellOrders[j].Quantity;
+						//	p("%d", BuyOrders[i].Quantity);
+						//	p("%d", SellOrders[j].Quantity);
+						if(Qdiff < 0)
+						{
+							Qdiff = SellOrders[j].Quantity - BuyOrders[i].Quantity;
+							SellOrders[j].Quantity = Qdiff;
+							BuyOrders[i].Quantity = 0;
+							ASSERT(Qdiff > 0, "Huh?");
+						}
+						else
+						{
+							BuyOrders[i].QBought = SellOrders[j].Quantity;
+							BuyOrders[i].Quantity = Qdiff;
+							SellOrders[j].Quantity = 0;
+						}
+
+						p("Buyer: %s, %d", BuyOrders[i].Buyer, BuyOrders[i].Quantity);
+						p("Seller: %s, %d", SellOrders[j].Seller, SellOrders[j].Quantity);
 						//p("diff %lf, buy: %lf, sell: %lf", _fabs(BuyOrders[i].Price - SellOrders[j].Price), BuyOrders[i].Price, SellOrders[j].Price);
 					}
 				}
 			}
 		}
+next_line:;
 	}
 }
